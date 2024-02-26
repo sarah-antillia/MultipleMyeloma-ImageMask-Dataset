@@ -72,7 +72,7 @@ def plot_statistics(x, y, labels, title):
 
 if __name__ == "__main__":
   try:
-    root_dir = "./MultipleMyeloma-ImageMask-Dataset/"
+    root_dir = "./MultipleMyeloma-ImageMask-Dataset_V2_X/"
     count_image_files(root_dir, root_dir)
 
   except:

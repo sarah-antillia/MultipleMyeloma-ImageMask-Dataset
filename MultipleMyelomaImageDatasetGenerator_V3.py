@@ -257,14 +257,14 @@ if __name__ == "__main__":
     input_dir   = "./TCIA_SegPC_dataset"
     # For simplicity, we have renamed the folder name from the original "validation" to "valid" 
     datasets    = ["valid", "test", "train"]
-    output_dir  = "./MultipleMyeloma-ImageMask-Dataset_V2"
+    output_dir  = "./MultipleMyeloma-ImageMask-Dataset_V3"
 
     if os.path.exists(output_dir):
       shutil.rmtree(output_dir)
     if not os.path.exists(output_dir):
       os.makedirs(output_dir)
     
-    generator = MultipleMyelomaImageDatasetGenerator(W=256*2, H=256*2, crop=False)
+    generator = MultipleMyelomaImageDatasetGenerator(W=256*3, H=256*3, crop=False)
     debug = True
     crop_ellipse = False
     for dataset in datasets:

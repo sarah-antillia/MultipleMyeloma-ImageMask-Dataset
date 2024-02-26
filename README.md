@@ -69,6 +69,10 @@ The dataset <b>MultipleMyeloma-CT</b> and has the following folder structure.<br
 </pre>
 Each x sub-folder of test, train, and valid contains bmp image files, and y contains bmp mask files.
 <br>
+<b>
+Please note that test dataset has no y folder, which means that it has no mask (ground_truth) correspoding to test/x folder.
+</b>
+<br>
  
 <h3>
 3. Create ImageMask Dataset
@@ -97,6 +101,8 @@ original <b>./TCIA_SegPC_dataset/</b>.<br>
     ├─images
     └─masks
 </pre>
+
+Please note that test/mask folder above becomes empty, because the original test dataset in ./TCIA_SegPC_dataset has no ground_truth.<br>
 
 <b>train/images samples:</b><br>
 <img src="./asset/train_images_sample.png" width="1024" height="auto">
@@ -157,3 +163,31 @@ Enlarged images:<br>
 You can download this dataset from the following google drive 
 <a href="https://drive.google.com/file/d/1mECqWe1TmDaGqg6yMuKCLXNZpmPaw9Ok/view?usp=sharing">MultipleMyeloma-ImageMask-Dataset_V2.zip</a>
 <br>
+
+<h3>
+4. Download MultipleMyeloma-ImageMask-Dataset_V2_X.zip
+</h3>
+Please run the Python script <a href="./split_master.py">split_master.py</a> to create a dataset having ground_truth in all sub-dataset includidng test.<br>
+<pre>
+>python split_master.py
+</pre>
+<pre>
+./MultipleMyeloma-ImageMask-Dataset_V2_X
+├─test
+│  ├─images
+│  └─masks
+├─train
+│  ├─images
+│  └─masks
+└─valid
+    ├─images
+    └─masks
+</pre>
+<br>
+MultipleMyeloma-ImageMask-Dataset Statistics_V2_X:<br>
+<img src="./_MultipleMyeloma-ImageMask-Dataset_V2_X_.png" width="512" height="auto"><br>
+
+You can download this dataset from the following google drive 
+<a href="https://drive.google.com/file/d/1QiGah4_0yY-5B7s2kIZ2AjbEVu2ejB3G/view?usp=sharing">MultipleMyeloma-ImageMask-Dataset_V2_X.zip</a>
+<br>
+
