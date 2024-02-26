@@ -70,7 +70,7 @@ The dataset <b>MultipleMyeloma-CT</b> and has the following folder structure.<br
 Each x sub-folder of test, train, and valid contains bmp image files, and y contains bmp mask files.
 <br>
 <b>
-Please note that test dataset has no y folder, which means that it has no mask (ground_truth) correspoding to test/x folder.
+Please note that test dataset has no y folder, which means that it has no mask (ground_truth) corresponding to test/x folder.
 </b>
 <br>
  
@@ -82,7 +82,7 @@ Please note that test dataset has no y folder, which means that it has no mask (
 </h3>
 Please run the following command.<br>
 <pre>
->python ./MultipleMyelomaImageDatasetGenerator.py.py
+>python ./MultipleMyelomaImageDatasetGenerator.py
 </pre>
 
 By using this Python script <a href="./MultipleMyelomaImageDatasetGenerator.py">MultipleMyelomaImageDatasetGenerator.py</a>,
@@ -167,7 +167,7 @@ You can download this dataset from the following google drive
 <h3>
 4. Download MultipleMyeloma-ImageMask-Dataset_V2_X.zip
 </h3>
-Please run the Python script <a href="./split_master.py">split_master.py</a> to create a dataset having ground_truth in all sub-dataset includidng test.<br>
+Please run the Python script <a href="./split_master.py">split_master.py</a> to create a dataset having ground_truth in all sub-dataset including test.<br>
 <pre>
 >python split_master.py
 </pre>
