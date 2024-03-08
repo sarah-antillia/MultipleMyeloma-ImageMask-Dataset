@@ -47,13 +47,13 @@ import random
 
 def split_master(images_dir, masks_dir, output_dir):
   image_files = glob.glob(images_dir + "/*.jpg")
-  # 2024/02/20
+  
   random.seed(137)
 
   random.shuffle(image_files)
   num = len(image_files)
-  num_valid = int(num * 0.5)
-  num_test  = int(num * 0.5)
+  num_valid = int(num * 0.9)
+  num_test  = int(num * 0.1)
   print("num_valid {}".format(num_valid))
   print("num_test  {}".format(num_test ))
 
@@ -86,19 +86,21 @@ def copy(image_files, masks_dir, dataset_dir):
 
 if __name__ == "__main__":
   try:
-    train_dir = "./MultipleMyeloma-ImageMask-Dataset_V2/train/"
-    #train_masks_dir  = "./MultipleMyeloma-ImageMask-Dataset_V2/train/masks/"
+    train_dir = "./MultipleMyeloma/train"
 
-    images_dir = "./MultipleMyeloma-ImageMask-Dataset_V2/valid/images/"
-    masks_dir  = "./MultipleMyeloma-ImageMask-Dataset_V2/valid/masks/"
-    output_dir = "./MultipleMyeloma-ImageMask-Dataset_V2_X/"
+     
+    images_dir = "./MultipleMyeloma//valid/images/"
+    masks_dir  = "./MultipleMyeloma//valid/masks/"
+    output_dir = "./MultipleMyeloma-ImageMask-Dataset_V1/"
     if os.path.exists(output_dir):
       shutil.rmtree(output_dir)    
+    # 1 Copy original train to new output_dir
     shutil.copytree(train_dir, output_dir + "/train")
 
     if not os.path.exists(output_dir):
       os.makedirs(output_dir)
 
+    # 2 Split original valid to new valid and test in new output_dir
     split_master(images_dir, masks_dir, output_dir)
 
   except:

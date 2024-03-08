@@ -15,8 +15,8 @@
 
 #
 # statistics.py
-
-# 2024/02/26 : Toshiyuki Arai antillia.com
+# Toshiyuki Arai antillia.com
+# 2024/03/09: Updated 
 
 import glob
 import os
@@ -33,11 +33,17 @@ def count_image_files(root_dir, title):
   y = []
   labels = []
   for sub_dir in sub_dirs:
+    print("sub_dir {}".format(sub_dir))
+    dir = root_dir + "/"+ sub_dir
+    if os.path.isfile(dir):
+      print("is file {}".format(dir))
+      continue
+
     x.append(n)
     n += 1
     labels.append(sub_dir +"/images")
     
-    subsub_dirs = os.listdir(root_dir + "/"+ sub_dir)
+    subsub_dirs = os.listdir(dir)
     
     for subsub_dir in subsub_dirs:
        fullpath = root_dir + "/" +  sub_dir + "/" + subsub_dir
@@ -57,7 +63,9 @@ def add_value_label(x_list, y_list):
 
 def plot_statistics(x, y, labels, title):
 
-  fig, ax = plt.subplots()
+  #fig, ax = plt.subplots()
+  fig, ax = plt.subplots(figsize=(6, 6))
+
   ax.bar(x, y, tick_label=labels)
   add_value_label(x, y)
 
@@ -73,6 +81,8 @@ def plot_statistics(x, y, labels, title):
 if __name__ == "__main__":
   try:
     root_dir = "./MultipleMyeloma-ImageMask-Dataset_V2_X/"
+    root_dir = "./Augmented-MultipleMyeloma-ImageMask-Dataset_V5/"
+
     count_image_files(root_dir, root_dir)
 
   except:

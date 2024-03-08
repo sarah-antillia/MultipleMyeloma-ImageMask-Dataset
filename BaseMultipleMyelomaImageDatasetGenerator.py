@@ -1,4 +1,4 @@
-# Copyright 2024 (C) antillia.com. All Rights Reserved.
+# Copyright 2023 (C) antillia.com. All Rights Reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -15,9 +15,8 @@
 
 #
 # MultipleMyelomaImageDataGenerator.py
-# 2024/02/26 : Toshiyuki Arai antillia.com
-# Generate 512x512 jpg image mask for train and valid,
-# originalsize jpg test dataset
+# 2023/05/18 : Toshiyuki Arai antillia.com
+
 #    
 #from email.mime import image
 from ctypes import c_byte
@@ -30,39 +29,17 @@ import numpy as np
 
 import traceback
 import cv2
-from PIL import Image, ImageOps, ImageDraw, ImageFilter
-from ConfigParser import ConfigParser
+from PIL import Image, ImageDraw, ImageFilter
 
-GENERATOR = "generator"
-AUGMENTOR = "augmentor"
 
 class MultipleMyelomaImageDatasetGenerator:
-  # Constructor
-  def __init__(self, config_file):
-    config = ConfigParser(config_file)
-    self.input_dir  = config.get(GENERATOR, "input_dir",  dvalue=None)
-    self.output_dir = config.get(GENERATOR, "output_dir", dvalue=None)
-    if not os.path.exists(self.input_dir):
-      raise Exception("Not found input_dir" + self.input_dir)
-    if os.path.exists(self.output_dir):
-      shutil.rmtree(self.output_dir)
-    if not os.path.exists(self.output_dir):
-      os.makedirs(self.output_dir)
-                    
-    self.W = config.get(GENERATOR, "width",  dvalue=256)
-    self.H = config.get(GENERATOR, "height", dvalue=256)
-    self.datasets = config.get(GENERATOR, "datasets", dvalue=["train", "valid"])
-
-    self.crop    = config.get(GENERATOR,  "crop",    dvalue=False)
-    self.augment = config.get(GENERATOR,  "augment", dvalue=False)
-    self.flip   = config.get(AUGMENTOR,   "flip",    dvalue=True)
-    self.mirror   = config.get(AUGMENTOR, "mirror",  dvalue=True)
-    self.ANGLES  = config.get(AUGMENTOR,  "angles",  dvalue=True)
-    self.mask_merge = config.get(GENERATOR,  "mask_merge",  dvalue=True)
+  def __init__(self, W=256, H=256):
+    self.W = W
+    self.H = H
     self.backgrounds = []
-  
+
   # dir = "./train/x
-  # target = "./test" "./train", "./valid"
+  # target = "./train" "./valid"
   def get_image_filepaths(self, images_dir ="./train/x"):
     pattern = images_dir + "/*.bmp"
     print("--- pattern {}".format(pattern))
@@ -90,26 +67,21 @@ class MultipleMyelomaImageDatasetGenerator:
       blurred = img.filter(filter=ImageFilter.BLUR)
       self.backgrounds.append(blurred)
 
-  def generate(self):
-    for dataset in self.datasets:
-      input_subdir  = os.path.join(self.input_dir, dataset)
-      output_subdir = os.path.join(self.output_dir, dataset)
-
-      self.create(input_subdir, output_subdir, crop_ellipse=False, debug=False)
-
+  # target = "./train" or "./validation"
   def create(self, input_dir, output_dir, crop_ellipse=False, debug=False):
     images_dir = input_dir + "/x/"
     masks_dir  = input_dir + "/y/"
     image_filepaths  = self.get_image_filepaths(images_dir)
     if os.path.exists(output_dir):
       shutil.rmtree(output_dir)
+
     if not os.path.exists(output_dir):
       os.makedirs(output_dir)
     
-    #self.create_backgrounds(image_filepaths, 20)
+    self.create_backgrounds(image_filepaths, 20)
 
     output_images_dir = os.path.join(output_dir, "images")
-    output_masks_dir  = os.path.join(output_dir, "masks")
+    output_masks_dir = os.path.join(output_dir, "masks")
     if not os.path.exists(output_images_dir):
       os.makedirs(output_images_dir)
     if not os.path.exists(output_masks_dir):
@@ -118,111 +90,69 @@ class MultipleMyelomaImageDatasetGenerator:
     for image_filepath in image_filepaths:
       basename = os.path.basename(image_filepath)
       name     = basename.split(".")[0]
-      if name == "610":
-        print("Skipping unmatched {}".format(image_filepath))
-        continue
 
-      img         = Image.open(image_filepath)
       # 1 Create resize_image of size 256x256
-      img_resized = self.create_resized_images(image_filepath, mask=False)
+      img_256x256 = self.create_resized_images(image_filepath, mask=False)
       
-      output_img_filepath = os.path.join(output_images_dir, name + ".jpg")
-      # 2 Save the img_resized as a jpg file.
-      #img_resized.save(output_img_filepath)
+      output_img_filepath = os.path.join(output_dir, name + ".jpg")
+      # 2 Save the img_256x256 as a jpg file.
+      #img_256x256.save(output_img_filepath)
       print("=== Saved image_filepath {} as {}".format(image_filepath, output_img_filepath))
 
       # 3 Get some mask_filepaths corresponding to the image_filepath
       mask_filepaths = self.get_mask_filepaths(image_filepath, masks_dir)
 
-      if  mask_filepaths ==None or len(mask_filepaths) ==0 :
-       print("---Input_dir {}".format(input_dir))
-       img.save(output_img_filepath)
-       print("==== Saved image file only without resizing")
-       continue
-      else:
-        img_resized.save(output_img_filepath)
-      mask = np.zeros((self.W, self.H, 3), dtype =np.uint8)
-      output_mask_filepath =  os.path.join(output_masks_dir, name + ".jpg")
-
+      pixel = None
       for mask_filepath in mask_filepaths:
         mask_basename = os.path.basename(mask_filepath)
         print(mask_basename)
         mask_filename   = mask_basename.split(".")[0]
         print("-------mask_filename {}".format(mask_filename))
         # 4 Create mask_image of size 256x256
-        print("=== Create mask_image_resized from {}".format(mask_filepath))
+        print("=== Create mask_image_256x256 from {}".format(mask_filepath))
         #PIL image format
-        mask_img_resized   = self.create_resized_images(mask_filepath, mask=True)
-        if self.mask_merge:
-          mask_x = np.array(mask_img_resized, dtype=np.uint8)
-          mask += mask_x
-        else:
-          pass
-      if self.mask_merge:
-        mask = cv2.cvtColor(mask, cv2.COLOR_BGR2RGB)
-        mask_img = Image.fromarray(mask)
-        mask_img.save(output_mask_filepath)
+        mask_img_256x256   = self.create_resized_images(mask_filepath, mask=True)
+        
+        
+        output_image_filepath = os.path.join(output_images_dir, mask_filename + ".jpg")
+        img_256x256.save(output_image_filepath)
+        output_mask_filepath =  os.path.join(output_masks_dir, mask_filename + ".jpg")
+        mask_img_256x256.save(output_mask_filepath)
         print("=== Save mask_image     {}".format(output_mask_filepath))
 
-      if self.augment:
-        self.create_augmented_image_mask(name, img_resized, mask_img , output_images_dir, output_masks_dir)
 
-  def create_augmented_image_mask(self, name, resized_image, resized_mask , output_images_dir, output_masks_dir):
-    for angle in self.ANGLES:
-        rotated_image = resized_image.rotate(angle)
-        rotated_mask  = resized_mask.rotate(angle)
-        output_filename = "rotated_" + str(angle) + "_" + name + ".jpg"
-
-        rotated_image_file = os.path.join(output_images_dir, output_filename)
-        rotated_image.save(rotated_image_file)
-        rotated_mask_file = os.path.join(output_masks_dir, output_filename)
-        rotated_mask.save(rotated_mask_file)
-      
-    # flipp
-    if self.flip:
-      flipped_image =  ImageOps.flip(resized_image)
-      flipped_mask  =  ImageOps.flip(resized_mask)
-      output_filename = "flipped_" + name + ".jpg"
-
-      flipped_image_file = os.path.join(output_images_dir, output_filename)
-      flipped_image.save(flipped_image_file)
-      flipped_mask_file = os.path.join(output_masks_dir, output_filename)
-      flipped_mask.save(flipped_mask_file)
-
-    # mirror
-    if self.mirror:
-      mirrored_image = ImageOps.mirror(resized_image)
-      mirrored_mask  = ImageOps.mirror(resized_mask)
-    
-      output_filename = "mirrored_"  + name + ".jpg"
-      mirrored_image_file = os.path.join(output_images_dir, output_filename)
-      mirrored_image.save(mirrored_image_file)
-      mirrored_mask_file = os.path.join(output_masks_dir, output_filename)
-      mirrored_mask.save(mirrored_mask_file)
-
+ 
   def crop_ellipse(self, img):
      img = img.convert("RGB")  
      height,width = img.size
      mask = Image.new('L', [height,width] , 0)
+  
      draw = ImageDraw.Draw(mask)
+   
      draw.ellipse([(0,0), (height,width)], fill=255) #, outline="white")
      #mask = mask.filter(ImageFilter.GaussianBlur(10))
+
      img_arr  = np.array(img)
      mask_arr = np.array(mask)
+
      final_img_arr = np.dstack((img_arr, mask_arr))
      final_img_arr = final_img_arr.copy()
      cropped = Image.fromarray(final_img_arr)
      return cropped
 
-  # Create a resized_resized_image from each original file in image_filepaths
+
+  # Create a resized_256x256_image from each original file in image_filepaths
   def create_resized_images(self, image_filepath, mask=False):
+
     img = Image.open(image_filepath)
-    print("---create_resized_resized_images {}".format(image_filepath))
+    print("---create_resized_256x256_images {}".format(image_filepath))
+    
     #pixel = img.getpixel((128, 128))
     # We use the following fixed pixel for a background image.
     pixel = (207, 196, 208)
     pixel = (200, 180, 180)
     pixel = (207, 196, 208)
+
     if mask:
       pixel = (0, 0, 0)
     print("----pixel {}".format(pixel))
@@ -243,15 +173,16 @@ class MultipleMyelomaImageDatasetGenerator:
     y = int( (max - h)/2 )
     background.paste(img, (x, y))
 
-    background_resized = background.resize((self.W, self.H))
+   
+    background_256x256 = background.resize((self.W, self.H))
     if mask:
-      background_resized = self.convert2WhiteMask(background_resized)
+      background_256x256 = self.convert2WhiteMask(background_256x256)
 
-    return background_resized
+    return background_256x256
 
   # 2023.05/15
-  def get_boundinbox(self, pil_mask_img_resized):
-        mask_img = np.array(pil_mask_img_resized)
+  def get_boundinbox(self, pil_mask_img_256x256):
+        mask_img = np.array(pil_mask_img_256x256)
 
         mask_img= cv2.cvtColor(mask_img,  cv2.COLOR_RGB2GRAY)
       
@@ -267,6 +198,7 @@ class MultipleMyelomaImageDatasetGenerator:
         #Compute bouding box of YOLO format.
         return (x, y, w, h)
   
+    
   def convert2WhiteMask(self, image):
     w, h = image.size
     for y in range(h):
@@ -277,33 +209,54 @@ class MultipleMyelomaImageDatasetGenerator:
           image.putpixel((x, y), pixel) 
     return image
 
+
+
 """
 INPUT:
 
 ./TCIA_SegPC_dataset
-├─test
 ├─train
 └─valid
 
 
 Output:
-./MultipleMyeloma_ImageMask-Dataset_V2
-├─test
+./MultipleMyeloma
 ├─train
 └─valid
  
 """
 
-# 
-# python MultipleMyelomaImageDatasetGenerator generator.config
-#
+"""
+categories [0]
+ 
+"MultipleMyeloma"        = 0
+
+
+
+"""
 if __name__ == "__main__":
-  try: 
-    config_file = "./generator.config"
-    if not os.path.exists(config_file):
-      raise Exception("Not found config_file " + config_file) 
-    generator = MultipleMyelomaImageDatasetGenerator(config_file)
-    generator.generate()
+  try:      
+    # create Ovrian UltraSound Images OUS_augmented_master_256x256 dataset train, valid 
+    # from the orignal Dataset_.
+
+    input_dir   = "./TCIA_SegPC_dataset"
+    # For simplicity, we have renamed the folder name from the original "validation" to "valid" 
+    datasets    = ["train", "valid"]
+    output_dir  = "./MultipleMyeloma"
+
+    if os.path.exists(output_dir):
+      shutil.rmtree(output_dir)
+    if not os.path.exists(output_dir):
+      os.makedirs(output_dir)
+
+    generator = MultipleMyelomaImageDatasetGenerator(W=512, H=512)
+    debug = True
+    crop_ellipse = False
+    for dataset in datasets:
+      input_subdir  = os.path.join(input_dir, dataset)
+      output_subdir = os.path.join(output_dir, dataset)
+
+      generator.create(input_subdir, output_subdir, crop_ellipse=crop_ellipse, debug=debug)
   except:
     traceback.print_exc()
 

@@ -1,5 +1,6 @@
-<h2>MultipleMyeloma-ImageMask-Dataset (2024/02/26)</h2>
+<h2>MultipleMyeloma-ImageMask-Dataset (2024/03/09)</h2>
 This is a MultipleMyeloma ImageMask dataset for Image Segmentation.<br>  
+<li>2024/03/09 Generated Augmented-ImageMask-Dataset_V5 of 640x640 pixel-size.</li><br>
 
 <h3>1. Dataset Citation</h3>
 
@@ -190,4 +191,52 @@ MultipleMyeloma-ImageMask-Dataset Statistics_V2_X:<br>
 You can download this dataset from the following google drive 
 <a href="https://drive.google.com/file/d/1QiGah4_0yY-5B7s2kIZ2AjbEVu2ejB3G/view?usp=sharing">MultipleMyeloma-ImageMask-Dataset_V2_X.zip</a>
 <br>
+
+
+<h3>
+5. Generate Augmented-MultipleMyeloma-ImageMask-Dataset_V5.zip
+</h3>
+
+To generate ImageMaskDataset of images and masks of 640x640 pixel size, and augment those images and masks, 
+we have modified generator.config file as shown below.<br>
+
+<pre>
+; generator,config
+; 2024/03/09 (C) antillia.com
+
+[generator]
+input_dir   = "./TCIA_SegPC_dataset"
+;dataset = ["test", "train", "valid"]
+datasets = ["train", "valid"]
+width      = 640
+height     = 640
+output_dir = "./Augmented-MultipleMyeloma-ImageMask-Dataset_V5"
+mask_merge = True
+crop    = False
+augment = True
+
+[augmentor]
+flip   = True
+mirror = True
+angles = [90, 180, 270]
+</pre>
+
+<pre>
+./Augmented-MultipleMyeloma-ImageMask-Dataset_V5
+├─train
+│  ├─images
+│  └─masks
+└─valid
+    ├─images
+    └─masks
+</pre>
+<br>
+Augmented-MultipleMyeloma-ImageMask-Dataset Statistics_V5:<br>
+<img src="./_Augmented-MultipleMyeloma-ImageMask-Dataset_V5_.png" width="512" height="auto"><br>
+
+You can download this dataset from the following google drive 
+<a href="https://drive.google.com/file/d/1gqmN7t9kkLMpn0xM8fOhBsv3T3-Ea64X/view?usp=sharing">Augmented-MultipleMyeloma-ImageMask-Dataset_V5.zip</a>
+<br>
+
+
 
